@@ -1,6 +1,6 @@
 [Unit]
 Description=gex-cron-runner: live rollup every 30s during RTH window (09:30-15:59:30 ET)
-Requires=gex-rollup-live.service
+# NOTE: no Requires= — that would trigger the service on timer activation.
 
 [Timer]
 # Fire every 30s during RTH (09:30 to 15:59:30 ET). The cron itself checks

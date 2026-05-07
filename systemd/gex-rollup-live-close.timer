@@ -1,6 +1,6 @@
 [Unit]
 Description=gex-cron-runner: trigger live-close at 16:00 ET (flip client to rollup)
-Requires=gex-rollup-live-close.service
+# NOTE: no Requires= — that would trigger the service on timer activation.
 
 [Timer]
 OnCalendar=Mon..Fri *-*-* 16:00:00 America/New_York

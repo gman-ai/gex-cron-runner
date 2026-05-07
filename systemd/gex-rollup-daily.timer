@@ -1,6 +1,8 @@
 [Unit]
 Description=gex-cron-runner: daily trading rollup at 00:05 ET
-Requires=gex-rollup-daily.service
+# NOTE: do NOT add Requires=gex-rollup-daily.service here — that triggers the
+# service on timer activation (e.g., `systemctl start ...timer`), which is
+# not what we want. The Triggers= relationship is implicit by name match.
 
 [Timer]
 # 00:05 ET every day. systemd timer interprets timezone via OnCalendar.

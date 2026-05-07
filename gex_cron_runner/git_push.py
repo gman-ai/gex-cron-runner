@@ -21,10 +21,25 @@ import shutil
 import subprocess
 import time
 from pathlib import Path
+from urllib.parse import urlparse
 
 from gex_cron_runner import config
 
 log = logging.getLogger(__name__)
+
+
+def _url_matches(on_disk_url: str, target_url: str) -> bool:
+    """Compare two git remote URLs ignoring embedded credentials.
+
+    The on-disk URL may have `https://founder:PAT@github.com/...` while the
+    target is `https://github.com/...`. Compare host + path only.
+    """
+    try:
+        a = urlparse(on_disk_url)
+        b = urlparse(target_url)
+    except Exception:
+        return False
+    return a.hostname == b.hostname and a.path.rstrip("/") == b.path.rstrip("/")
 
 
 class GitPushError(RuntimeError):
@@ -49,9 +64,9 @@ def ensure_clone(clone_dir: Path, repo_url: str, pat: str | None = None) -> None
     populated and points to the right remote, we re-use it.
     """
     if (clone_dir / ".git").exists():
-        # Verify remote points where we expect
+        # Verify remote points where we expect (ignoring embedded credentials)
         result = _run_git(["remote", "get-url", "origin"], cwd=clone_dir, check=False)
-        if result.returncode == 0 and repo_url in result.stdout.strip():
+        if result.returncode == 0 and _url_matches(result.stdout.strip(), repo_url):
             log.debug("clone already present at %s", clone_dir)
             return
         log.warning("clone at %s has wrong remote; recloning", clone_dir)
