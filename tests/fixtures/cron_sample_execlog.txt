@@ -1,0 +1,14 @@
+[{"id":316,"position_id":176,"action":"CANCEL_CONFIRMED","order_id":1049,"contract_symbol":"SPXW 7320P","direction":"BUY_PUTS","requested_qty":1,"limit_price":null,"fill_price":null,"fill_qty":0,"status":"confirmed","gate_results":null,"error_message":null,"created_at":"2026-05-07 17:55:02"},
+{"id":315,"position_id":176,"action":"CANCEL_SENT","order_id":1049,"contract_symbol":"SPXW 7320P","direction":"BUY_PUTS","requested_qty":1,"limit_price":null,"fill_price":null,"fill_qty":0,"status":"cancel_sent","gate_results":null,"error_message":null,"created_at":"2026-05-07 17:54:32"},
+{"id":318,"position_id":177,"action":"ENTRY","order_id":1058,"contract_symbol":"SPXW 7320P","direction":"BUY_PUTS","requested_qty":1,"limit_price":0.0,"fill_price":0.0,"fill_qty":0,"status":"submitted","gate_results":null,"error_message":null,"created_at":"2026-05-07 18:00:13"},
+{"id":310,"position_id":174,"action":"ESCALATE_MKT","order_id":1036,"contract_symbol":"SPXW 7315P","direction":"BUY_PUTS","requested_qty":1,"limit_price":null,"fill_price":null,"fill_qty":0,"status":"submitted","gate_results":null,"error_message":null,"created_at":"2026-05-07 17:31:47"},
+{"id":319,"position_id":177,"action":"EXIT_SUBMIT","order_id":1061,"contract_symbol":"SPXW 7320P","direction":"BUY_PUTS","requested_qty":1,"limit_price":null,"fill_price":null,"fill_qty":0,"status":"submitted","gate_results":null,"error_message":null,"created_at":"2026-05-07 18:01:02"},
+{"id":114,"position_id":72,"action":"GAMMA_RECLAIM_FORCE_EXIT","order_id":435,"contract_symbol":"SPXW 7030C","direction":"BUY_CALLS","requested_qty":1,"limit_price":null,"fill_price":null,"fill_qty":0,"status":"submitted","gate_results":null,"error_message":null,"created_at":"2026-04-16 17:15:47"},
+{"id":309,"position_id":174,"action":"GHOST_RESET","order_id":1032,"contract_symbol":"SPXW 7315P","direction":"BUY_PUTS","requested_qty":1,"limit_price":null,"fill_price":null,"fill_qty":0,"status":"ghost","gate_results":null,"error_message":null,"created_at":"2026-05-07 17:31:46"}]
+[{"action":"ENTRY","COUNT(*)":134},
+{"action":"EXIT_SUBMIT","COUNT(*)":79},
+{"action":"CANCEL_SENT","COUNT(*)":31},
+{"action":"CANCEL_CONFIRMED","COUNT(*)":31},
+{"action":"GHOST_RESET","COUNT(*)":22},
+{"action":"ESCALATE_MKT","COUNT(*)":21},
+{"action":"GAMMA_RECLAIM_FORCE_EXIT","COUNT(*)":1}]

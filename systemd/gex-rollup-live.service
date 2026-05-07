@@ -1,0 +1,45 @@
+[Unit]
+Description=gex-cron-runner: live rollup writer (every 30s during RTH)
+Documentation=https://github.com/gman-ai/gex-cron-runner
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=rollup
+Group=rollup
+
+WorkingDirectory=/opt/gex-cron-runner
+EnvironmentFile=/etc/rollup/r2.env
+EnvironmentFile=/etc/rollup/healthchecks.env
+ExecStart=/opt/gex-cron-runner/.venv/bin/python -m gex_cron_runner.live_writer --journal-unit=paisamaker-gexwatch.service
+
+# Resource caps — even tighter than daily because we run 800x/day during RTH
+CPUQuota=15%
+MemoryMax=128M
+IOSchedulingClass=idle
+Nice=15
+
+# Critical: 20s timeout prevents pile-up on the 30s timer
+TimeoutStartSec=20
+
+# Filesystem hardening
+ReadWritePaths=/var/lib/gex-cron
+ReadOnlyPaths=/opt/market-data /opt/paisamaker-app /opt/gex-advisor
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+NoNewPrivileges=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+
+# Allow journal read for log_parser.count_ibkr_disconnects_today
+SupplementaryGroups=systemd-journal
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=gex-rollup-live
+
+[Install]
+WantedBy=multi-user.target

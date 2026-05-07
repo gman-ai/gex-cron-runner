@@ -1,0 +1,26 @@
+[Unit]
+Description=gex-cron-runner: live rollup every 30s during RTH window (09:30-15:59:30 ET)
+Requires=gex-rollup-live.service
+
+[Timer]
+# Fire every 30s during RTH (09:30 to 15:59:30 ET). The cron itself checks
+# is_rth_now() and no-ops on weekends/holidays/half-days — the timer just
+# defines when it's WORTH trying.
+OnCalendar=Mon..Fri *-*-* 09:30:00..15:59:30/00:30 America/New_York
+
+# After 16:00 ET, a separate one-shot (gex-rollup-live-close.service) writes
+# the final is_rth: false payload so the client transitions out of live mode.
+# That's wired separately — not via this timer.
+
+# Don't catch up missed runs — we're live data, stale runs are noise
+Persistent=false
+
+# No randomized delay — we want the 30s cadence honored
+RandomizedDelaySec=0
+
+# AccuracySec controls how tight the timer fires; default is 1min which is
+# wrong for a 30s timer. Set to 1s for tight cadence.
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target

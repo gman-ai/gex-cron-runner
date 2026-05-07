@@ -1,0 +1,47 @@
+[Unit]
+Description=gex-cron-runner: daily trading rollup writer (00:05 ET)
+Documentation=https://github.com/gman-ai/gex-cron-runner
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=rollup
+Group=rollup
+
+# Working directory + venv
+WorkingDirectory=/opt/gex-cron-runner
+EnvironmentFile=/etc/rollup/github.env
+EnvironmentFile=/etc/rollup/healthchecks.env
+ExecStart=/opt/gex-cron-runner/.venv/bin/python -m gex_cron_runner.daily_writer
+
+# Resource caps — well below trading-side budgets (per plan §15.2)
+CPUQuota=20%
+MemoryMax=128M
+IOSchedulingClass=idle
+Nice=10
+
+# Run timeout — daily writer should complete in <5s typical; cap at 5 min
+TimeoutStartSec=5min
+
+# Filesystem hardening (per plan §15.3)
+ReadWritePaths=/var/lib/gex-cron
+ReadOnlyPaths=/opt/market-data /opt/paisamaker-app /opt/gex-advisor
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+NoNewPrivileges=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+
+# Logging via journald (per plan §15.4)
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=gex-rollup-daily
+
+# Failure → systemd OnFailure runs the HC fail-ping helper unit (configured separately)
+# OnFailure=gex-rollup-fail@daily.service
+
+[Install]
+WantedBy=multi-user.target

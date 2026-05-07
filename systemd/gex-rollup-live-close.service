@@ -1,0 +1,32 @@
+[Unit]
+Description=gex-cron-runner: final live.json write at 16:00 ET (flips client to rollup mode)
+Documentation=https://github.com/gman-ai/gex-cron-runner
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=rollup
+Group=rollup
+WorkingDirectory=/opt/gex-cron-runner
+EnvironmentFile=/etc/rollup/r2.env
+EnvironmentFile=/etc/rollup/healthchecks.env
+ExecStart=/opt/gex-cron-runner/.venv/bin/python -m gex_cron_runner.live_writer
+
+CPUQuota=15%
+MemoryMax=128M
+IOSchedulingClass=idle
+Nice=15
+TimeoutStartSec=20
+
+ReadWritePaths=/var/lib/gex-cron
+ReadOnlyPaths=/opt/market-data /opt/paisamaker-app /opt/gex-advisor
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+NoNewPrivileges=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+SystemCallFilter=@system-service
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=gex-rollup-live-close

@@ -1,0 +1,34 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+*.egg-info/
+*.egg
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.mypy_cache/
+.dmypy.json
+.ruff_cache/
+
+# Local state — never commit
+state/
+logs/
+staging/
+published/
+udayx-clone/
+
+# Generated fixture (uncomment if we add a fixture-generator)
+# tests/fixtures/*.db

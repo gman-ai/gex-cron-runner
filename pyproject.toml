@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gex-cron-runner"
+version = "0.1.0"
+description = "Daily + live JSON rollup writer for udayx.com/trading. Reads paisamaker / gex-advisor / market-data-fetcher SQLite DBs read-only on the Hetzner VM and publishes JSON to udayx.com (daily) and Cloudflare R2 (live)."
+requires-python = ">=3.11"
+authors = [{ name = "Uday Kumar", email = "founder@getmyagentnow.com" }]
+license = { text = "MIT" }
+
+dependencies = [
+    "jsonschema>=4.21",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=4.1",
+]
+
+[project.scripts]
+gex-rollup-daily = "gex_cron_runner.daily_writer:main"
+gex-rollup-live  = "gex_cron_runner.live_writer:main"
+
+[tool.setuptools.packages.find]
+include = ["gex_cron_runner*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra -q"
+
+# Read-only enforcement: this grep is run by `make ro-check` (and CI later) to
+# guarantee no writeable SQL ever lands in source. The cron is read-only at three
+# layers (URI flag, query_only pragma, code review), and this is the third.
+[tool.gex-cron-runner]
+ro_forbidden_patterns = [
+    "INSERT ", "UPDATE ", "DELETE ", "DROP ", "CREATE TABLE",
+    "?mode=rw", "mode=rw"
+]
