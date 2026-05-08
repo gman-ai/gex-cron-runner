@@ -38,8 +38,8 @@ class SnapshotTooSlow(RuntimeError):
     """
 
 
-def open_ro(path: str) -> sqlite3.Connection:
-    """Open a SQLite connection in read-only mode.
+def open_ro(path: str, *, max_retries: int = 5, backoff_seconds: float = 0.5) -> sqlite3.Connection:
+    """Open a SQLite connection in read-only mode, with retry on transient errors.
 
     Required for ALL DBs touched by the cron. Raises if path doesn't exist
     (rather than silently creating an empty DB, which is what bare `connect()`
@@ -48,21 +48,52 @@ def open_ro(path: str) -> sqlite3.Connection:
     The `?mode=ro` URI flag is critical — without it, SQLite tries to acquire
     write locks even for SELECT statements and can interfere with the WAL
     writer.
+
+    Retry policy: SQLite can return "unable to open database file" if the
+    writer is mid-checkpoint or if the WAL/SHM sidecars are temporarily
+    unreadable (e.g., gex-advisor's session-boundary outcome backfill at
+    00:00 ET — verified known window). We retry up to `max_retries` times
+    with linear backoff before giving up. Total wait at defaults: 0.5+1.0+1.5+2.0+2.5 = 7.5s.
     """
     if not os.path.exists(path):
         raise FileNotFoundError(f"DB path not found: {path}")
-    conn = sqlite3.connect(
-        f"file:{path}?mode=ro",
-        uri=True,
-        timeout=10,
-        # Don't auto-commit anything — read-only anyway, but explicit
-        isolation_level=None,
-    )
-    conn.row_factory = sqlite3.Row
-    # Defense-in-depth: even if URI flag were somehow bypassed, query_only=1
-    # blocks INSERT/UPDATE/DELETE at the SQLite engine level.
-    conn.execute("PRAGMA query_only=1")
-    return conn
+
+    last_err: Exception | None = None
+    for attempt in range(max_retries + 1):
+        try:
+            conn = sqlite3.connect(
+                f"file:{path}?mode=ro",
+                uri=True,
+                timeout=10,
+                # Don't auto-commit anything — read-only anyway, but explicit
+                isolation_level=None,
+            )
+            conn.row_factory = sqlite3.Row
+            # Defense-in-depth: even if URI flag were somehow bypassed, query_only=1
+            # blocks INSERT/UPDATE/DELETE at the SQLite engine level.
+            conn.execute("PRAGMA query_only=1")
+            # Sanity: actually try a tiny read so we fail FAST if the DB is
+            # mid-checkpoint and the SHM is unreadable.
+            conn.execute("SELECT 1").fetchone()
+            return conn
+        except sqlite3.OperationalError as e:
+            last_err = e
+            msg = str(e).lower()
+            # Only retry on the transient "unable to open" / "disk i/o" errors.
+            # Don't retry on schema errors, syntax errors, etc.
+            if "unable to open" not in msg and "disk i/o" not in msg and "database is locked" not in msg:
+                raise
+            if attempt < max_retries:
+                wait = backoff_seconds * (attempt + 1)
+                # Use module-level log only if defined (avoid import cycle)
+                import logging as _logging
+                _logging.getLogger(__name__).warning(
+                    "open_ro %s transient error '%s'; retry %d/%d in %.1fs",
+                    path, msg, attempt + 1, max_retries, wait,
+                )
+                time.sleep(wait)
+            # else: fall through to raise after loop
+    raise last_err  # type: ignore[misc]
 
 
 @contextmanager

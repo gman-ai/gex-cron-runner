@@ -70,6 +70,52 @@ def test_open_ro_missing_file_raises(tmp_path):
         db.open_ro(str(tmp_path / "does-not-exist.db"))
 
 
+def test_open_ro_retries_on_transient_unable_to_open(tmp_db, monkeypatch):
+    """Simulate the gex-advisor midnight race: first 2 connect attempts fail,
+    third succeeds. open_ro should return a working connection."""
+    real_connect = sqlite3.connect
+    call_count = [0]
+
+    def flaky_connect(*args, **kwargs):
+        call_count[0] += 1
+        if call_count[0] <= 2:
+            raise sqlite3.OperationalError("unable to open database file")
+        return real_connect(*args, **kwargs)
+
+    monkeypatch.setattr(sqlite3, "connect", flaky_connect)
+    conn = db.open_ro(tmp_db, max_retries=3, backoff_seconds=0.001)
+    assert call_count[0] == 3  # 2 failures + 1 success
+    rows = list(conn.execute("SELECT * FROM t"))
+    assert len(rows) == 2
+    conn.close()
+
+
+def test_open_ro_does_not_retry_on_schema_error(tmp_db, monkeypatch):
+    """Non-transient errors (e.g., schema/syntax) should fail fast, no retry."""
+    real_connect = sqlite3.connect
+    call_count = [0]
+
+    def syntax_err_connect(*args, **kwargs):
+        call_count[0] += 1
+        # not a transient error
+        raise sqlite3.OperationalError("near 'INVALID': syntax error")
+
+    monkeypatch.setattr(sqlite3, "connect", syntax_err_connect)
+    with pytest.raises(sqlite3.OperationalError, match="syntax error"):
+        db.open_ro(tmp_db, max_retries=5, backoff_seconds=0.001)
+    assert call_count[0] == 1  # no retry
+
+
+def test_open_ro_gives_up_after_max_retries(tmp_db, monkeypatch):
+    """Persistent transient error → should eventually raise."""
+    def always_fail(*args, **kwargs):
+        raise sqlite3.OperationalError("unable to open database file")
+
+    monkeypatch.setattr(sqlite3, "connect", always_fail)
+    with pytest.raises(sqlite3.OperationalError, match="unable to open"):
+        db.open_ro(tmp_db, max_retries=2, backoff_seconds=0.001)
+
+
 def test_snapshot_short_query_does_not_warn(tmp_db, caplog):
     conn = db.open_ro(tmp_db)
     import logging

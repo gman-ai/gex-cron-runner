@@ -5,8 +5,12 @@ Description=gex-cron-runner: daily trading rollup at 00:05 ET
 # not what we want. The Triggers= relationship is implicit by name match.
 
 [Timer]
-# 00:05 ET every day. systemd timer interprets timezone via OnCalendar.
-OnCalendar=*-*-* 00:05:00 America/New_York
+# 00:15 ET every day. systemd timer interprets timezone via OnCalendar.
+# Pushed from 00:05 → 00:15 after a 2026-05-08 race with gex-advisor's
+# session-boundary outcome backfill (which holds alert_log.db R/W briefly at
+# 00:00 ET; advisor confirmed this in INTEGRATION.md). 00:15 gives plenty of
+# buffer; db.open_ro() also retries with backoff as defense-in-depth.
+OnCalendar=*-*-* 00:15:00 America/New_York
 # Don't fire missed runs on boot — daily rollup needs to be triggered exactly once
 Persistent=false
 # Random delay 0-30s to avoid the cron storm at exact midnight
