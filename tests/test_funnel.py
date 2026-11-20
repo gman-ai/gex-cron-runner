@@ -119,7 +119,7 @@ def test_zero_alerts_day():
 
 def test_all_observed_skip_reasons_bucket_correctly():
     """Use the actual skip_reason values from paisa's prod sample data."""
-    # From the paisa reply: 9 observed skip_reasons + counts (5 weeks of data).
+    # From paisamaker: 9 observed skip_reasons + counts (5 weeks of data).
     # We use small numbers here for unit-test clarity.
     skip_counts = {
         "rearm_distance": 5,

@@ -287,7 +287,7 @@ def alert_row_for_json(row: dict[str, Any]) -> dict[str, Any]:
 
 
 def _alert_outcome(row: dict[str, Any]) -> str:
-    """Per gex-advisor reply: outcome semantics."""
+    """Per gex-advisor: outcome semantics."""
     if row.get("target_hit") == 1:
         return "target_hit"
     if row.get("stop_hit") == 1:
@@ -300,7 +300,7 @@ def _alert_outcome(row: dict[str, Any]) -> str:
 def trade_row_for_json(pos: dict[str, Any], alert: dict[str, Any] | None) -> dict[str, Any]:
     """Convert a gex_positions row into the JSON output shape.
 
-    Per paisa reply: hold_minutes derived from julianday() math; right/strike
+    Per paisamaker: hold_minutes derived from julianday() math; right/strike
     parsed from contract_symbol; pnl is the only P&L column (filter shadow_mode=0
     for real fills).
     """

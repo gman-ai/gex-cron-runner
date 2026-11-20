@@ -15,7 +15,7 @@ Stages (per plan §3 + cross-project verification):
   6. executor_accepted     — skip_reason ∈ {executor_disconnected, ibkr_not_live, ...}
   7. entry_filled          — drops = positions where entry_exec_status='failed_cancelled'
 
-Per paisa reply: only 9 of 18 defined skip_reasons have ever fired in
+Per paisamaker: only 9 of 18 defined skip_reasons have ever fired in
 production. Cron reserves all 18 buckets; never-observed ones default to 0.
 Unknown skip_reasons (schema drift) surface under dispatcher.sub.unstructured
 and mark that stage `structured: false`.
@@ -154,7 +154,7 @@ def validate_arithmetic(stages: list[dict[str, Any]]) -> list[str]:
 
     Returns a list of error messages (empty if OK). Used by the writer for a
     soft warning — funnel arithmetic CAN diverge by 1-2 due to transient
-    `executed=0` rows in gex_signals (per paisa reply, ~seconds), but
+    `executed=0` rows in gex_signals (per paisamaker, ~seconds), but
     larger gaps suggest a counting bug.
     """
     errors: list[str] = []
@@ -175,7 +175,7 @@ def filter_skip_counts_for_funnel(skip_counts: dict[str, int]) -> dict[str, int]
     before passing to build_funnel.
 
     Hygiene reasons are operational recovery paths, not real "drops" from
-    the user's perspective. Per paisa reply, they should be excluded from
+    the user's perspective. Per paisamaker, they should be excluded from
     the funnel but kept observable in the raw skip_counts dict for ops review.
     """
     return {k: v for k, v in skip_counts.items() if k not in config.HYGIENE_KEYS}

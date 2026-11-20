@@ -111,7 +111,7 @@ def test_count_disconnects_no_disconnect_lines(tmp_path):
 
 
 def test_get_kill_switch_state_empty(paisa_db):
-    """No row = RUNNING (per paisa reply)."""
+    """No row = RUNNING (per paisamaker)."""
     assert log_parser.get_kill_switch_state(paisa_db) == "RUNNING"
 
 
