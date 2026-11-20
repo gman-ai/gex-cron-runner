@@ -209,8 +209,9 @@ BUNDLE_1_CUTOFF_UTC = "2026-05-05T18:00:00Z"
 # Format: ISO date string → close time HH:MM ET.
 # ---------------------------------------------------------------------------
 HALF_DAY_CLOSE_ET: dict[str, str] = {
-    # "2026-11-27": "13:00",  # day after Thanksgiving
-    # "2026-12-24": "13:00",  # Christmas Eve
+    # NYSE early closes, 1:00 p.m. ET.
+    "2026-11-27": "13:00",  # day after Thanksgiving
+    "2026-12-24": "13:00",  # Christmas Eve
 }
 
 
