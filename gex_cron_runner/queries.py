@@ -19,7 +19,7 @@ def query_alerts_emitted(conn_paisa, date_iso: str) -> list[sqlite3.Row]:
     """All production alerts for date D (in ET via date_str).
 
     Filter: is_test=0 AND alert_type NOT LIKE 'SHADOW_%' AND alert_type NOT IN
-    ('STRUCTURE_BREAK', 'STRUCTURE_BRIEF') — all three required per gex-advisor reply.
+    ('STRUCTURE_BREAK', 'STRUCTURE_BRIEF') — all three required per gex-advisor.
 
     Includes both entry-types and exit-types; caller computes
     `entry_type_excluded` from this list.
@@ -53,7 +53,7 @@ def query_upstream_received_count(conn_paisa, date_iso: str) -> int:
 def query_skip_counts(conn_paisa, date_iso: str) -> dict[str, int]:
     """skip_reason → count for advisor-source signals that were skipped on D.
 
-    Only `executed=-1` rows (skipped) — `executed=0` is transient (paisa reply
+    Only `executed=-1` rows (skipped) — `executed=0` is transient (paisamaker
     correction) and `executed=1` is opened. We exclude executed=0 to avoid
     double-counting transient state.
     """
@@ -70,7 +70,7 @@ def query_skip_counts(conn_paisa, date_iso: str) -> dict[str, int]:
 def query_positions_for_date(conn_paisa, date_iso: str) -> list[sqlite3.Row]:
     """All advisor-source positions opened on date D, real fills only.
 
-    Use status filter (per paisa reply: status='open' / 'closed' / 'void' / 'partial').
+    Use status filter (per paisamaker: status='open' / 'closed' / 'void' / 'partial').
     Filter shadow_mode=0 for real IBKR fills (shadow_mode=1 = synthetic sim).
     Hold minutes derived in SQL via julianday() math.
     """
@@ -115,7 +115,7 @@ def query_session_mode_at_eod(conn_paisa, date_iso: str) -> str | None:
 def query_tracked_tickers(conn_market_data) -> dict[str, int]:
     """instrument_registry ⨝ scalar_readings for last 7d → {symbol: instrument_id}.
 
-    Per fetcher reply: don't hardcode the ticker list; query at startup.
+    Per market-data-fetcher: don't hardcode the ticker list; query at startup.
     """
     rows = conn_market_data.execute("""
         SELECT instrument_id, symbol FROM instrument_registry
@@ -132,7 +132,7 @@ def query_tracked_tickers(conn_market_data) -> dict[str, int]:
 def query_latest_spot(conn_market_data, instrument_id: int) -> dict[str, Any] | None:
     """Latest spot for one ticker, with stored_at + age_seconds.
 
-    Per fetcher reply (canonical query):
+    Per market-data-fetcher (canonical query):
       source_id=1 (classic/zero/majors), ingest_mode='live', ORDER BY event_at DESC.
     Includes age_seconds via julianday() math.
     """
@@ -157,7 +157,7 @@ def query_latest_spot(conn_market_data, instrument_id: int) -> dict[str, Any] | 
 
 
 def query_alerts_recent_30m(conn_paisa) -> list[sqlite3.Row]:
-    """Last 30 min of prod alerts. Two date_str values per gex-advisor reply
+    """Last 30 min of prod alerts. Two date_str values per gex-advisor
     (handles UTC/ET boundary at midnight)."""
     sql = f"""
         SELECT
@@ -179,7 +179,7 @@ def query_alerts_recent_30m(conn_paisa) -> list[sqlite3.Row]:
 def query_open_positions(conn_paisa) -> list[sqlite3.Row]:
     """Confirmed-live open positions only.
 
-    Per paisa reply: filter by status='open' (NOT exit_time IS NULL — voids
+    Per paisamaker: filter by status='open' (NOT exit_time IS NULL — voids
     have exit_time set with status='void'). Also filter entry_exec_status='filled'
     to skip the 1–75s 'unknown' transient state during IBKR reconcile.
     """

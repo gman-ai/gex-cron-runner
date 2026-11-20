@@ -1,6 +1,6 @@
 """Parse paisa's gex_watch.log for live state.
 
-Per paisa reply: `current_mode`, `kill_switch_state` and `ibkr_disconnects` are
+Per paisamaker: `current_mode`, `kill_switch_state` and `ibkr_disconnects` are
 NOT in any DB. They live in process memory + heartbeat log lines. The file is
 single, append-only (verified ~16.6 MB at 5 weeks, no rotation), so a simple
 seek-to-end read covers the recent state.
@@ -204,7 +204,7 @@ def _count_disconnects_file(path: str) -> int:
 def get_kill_switch_state(conn_paisa) -> str:
     """Read pipeline_state.exec_halt_level (rare path).
 
-    Per paisa reply: normal operation = empty table. Treat absent row as
+    Per paisamaker: normal operation = empty table. Treat absent row as
     RUNNING; `value='1'` as HALTED.
     """
     try:

@@ -4,15 +4,15 @@ CRITICAL: this is the ONLY module that opens connections to paisa/advisor/
 fetcher SQLite DBs. All callers go through `open_ro()`. Three layers of
 read-only enforcement:
 
-1. URI flag `?mode=ro` (per all three sibling-project replies — REQUIRED, not
+1. URI flag `?mode=ro` (all three upstream projects REQUIRE it, not
    optional; bare path triggers write locks).
 2. `PRAGMA query_only=1` after connect.
 3. No INSERT/UPDATE/DELETE strings in the source (CI grep check in
    `pyproject.toml`).
 
 The atomic-snapshot context manager wraps SELECTs in a `BEGIN`/`COMMIT`
-transaction. WAL gives us snapshot isolation for the duration. Per paisa
-reply, this is the recommended pattern for cross-table self-consistent reads
+transaction. WAL gives us snapshot isolation for the duration. Per paisamaker,
+this is the recommended pattern for cross-table self-consistent reads
 in the daily rollup. Live cron skips this (30s drift acceptable).
 """
 from __future__ import annotations
@@ -150,7 +150,7 @@ def attach_ro(conn: sqlite3.Connection, path: str, alias: str) -> None:
     happen in a single SQL statement.
 
     Note: ATTACH is itself a write to sqlite_master, but with `?mode=ro` on
-    the URI it's a read-only attach. Verified safe by paisa reply (§5).
+    the URI it's a read-only attach. Verified safe with paisamaker.
     """
     if not os.path.exists(path):
         raise FileNotFoundError(f"attach path not found: {path}")

@@ -12,7 +12,7 @@ def test_skip_reason_bands_partition_correctly():
 
 
 def test_observed_skip_reasons_all_bucketed():
-    """The 9 production-observed skip_reasons (per paisa reply) are all known."""
+    """The 9 production-observed skip_reasons (per paisamaker) are all known."""
     observed = {
         "rearm_distance", "no_qualifying_strike", "open_chop_suppression",
         "cooldown", "max_positions_ticker", "executor_rejected",

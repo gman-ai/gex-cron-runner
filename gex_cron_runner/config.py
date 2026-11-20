@@ -31,7 +31,7 @@ LOG_PATHS: dict[str, str] = {
 # Schema pins. Cron startup verifies these. Mismatch = exit 1 (fail loud).
 # ---------------------------------------------------------------------------
 SCHEMA_PINS = {
-    # market_data.db has _schema_version table; expect version 6 per fetcher reply.
+    # market_data.db has _schema_version table; expect version 6 per market-data-fetcher.
     "market_data_version": 6,
     # alert_log.db schema lives in alert_log.py:114 init_db() (no _schema_version
     # table). Pin column count = 41 per gex-advisor INTEGRATION.md@eec441f.
@@ -73,7 +73,7 @@ R2_RCLONE_REMOTE = os.environ.get("R2_RCLONE_REMOTE", "udayx-r2")  # rclone conf
 # Staleness thresholds (ladder mirrored in udayx UI).
 # ---------------------------------------------------------------------------
 SPOT_AGE_AMBER_SEC = 60   # >60s = grey out individual ticker
-SPOT_AGE_GREY_SEC = 300   # >300s = upstream broken per fetcher reply
+SPOT_AGE_GREY_SEC = 300   # >300s = upstream broken per market-data-fetcher
 
 # Heartbeat parsing for current_mode
 HEARTBEAT_STALE_MIN = 15  # >15 min without an `ibkr: mode=` line = UNKNOWN
@@ -85,7 +85,7 @@ SNAPSHOT_FAIL_SEC = 5.0  # exit 1 if any snapshot exceeds this (defensive)
 
 # ---------------------------------------------------------------------------
 # Skip-reason → funnel-band mapping (single source of truth).
-# Per paisa reply: only 9 of 18 defined values have ever fired in production
+# Per paisamaker: only 9 of 18 defined values have ever fired in production
 # (rearm_distance dominates ~62%). Cron reserves all 18 buckets; never-observed
 # ones default to 0 in the JSON output.
 # ---------------------------------------------------------------------------
@@ -126,7 +126,7 @@ ALL_KNOWN_SKIP_REASONS: frozenset[str] = frozenset(
 
 # ---------------------------------------------------------------------------
 # Production filter for alert_log queries (three clauses, ALL required per
-# gex-advisor reply).
+# gex-advisor).
 # ---------------------------------------------------------------------------
 PROD_ALERT_FILTER_SQL = (
     "is_test = 0 "
@@ -149,7 +149,7 @@ EXIT_ALERT_TYPES: tuple[str, ...] = (
 
 
 # ---------------------------------------------------------------------------
-# Trigger features per alert type. Per gex-advisor reply, several feature
+# Trigger features per alert type. Per gex-advisor, several feature
 # names live in features_json (not as top-level columns) — JSON extract
 # required.
 # Format: (feature_name, source) where source is "col" or "json".
@@ -204,7 +204,7 @@ BUNDLE_1_CUTOFF_UTC = "2026-05-05T18:00:00Z"
 
 
 # ---------------------------------------------------------------------------
-# Half-day close map. NOT in market_holidays schema (per fetcher reply);
+# Half-day close map. NOT in market_holidays schema (per market-data-fetcher);
 # gex-cron-runner owns this. Populate each year before the first half-day.
 # Format: ISO date string → close time HH:MM ET.
 # ---------------------------------------------------------------------------

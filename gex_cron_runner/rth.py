@@ -1,6 +1,6 @@
 """Regular Trading Hours (RTH) and holiday derivation.
 
-Reimplemented in this repo per market-data-fetcher reply (don't import from
+Reimplemented in this repo per market-data-fetcher (don't import from
 fetcher; ~30 LOC standalone). Uses ZoneInfo for proper DST handling. Holidays
 read from market_data.db; half-days from the cron-owned HALF_DAY_CLOSE_ET map
 (market_holidays schema doesn't carry a close_time column).
@@ -29,7 +29,7 @@ class RthState:
 def load_holidays(conn_market_data: sqlite3.Connection) -> set[str]:
     """Load NYSE full-day holidays from market_data.db.market_holidays.
 
-    Returns a set of ISO date strings ('2026-12-25'). Per fetcher reply, the
+    Returns a set of ISO date strings ('2026-12-25'). Per market-data-fetcher, the
     table is keyed by date PRIMARY KEY with TEXT values in ISO 8601.
     """
     rows = conn_market_data.execute(
