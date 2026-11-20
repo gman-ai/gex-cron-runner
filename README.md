@@ -2,13 +2,13 @@
 
 Daily + live trading-rollup writer for **udayx.com/trading**. Reads three SQLite databases on the Hetzner VM read-only and publishes JSON outputs:
 
-- **daily/{YYYY-MM-DD}.json** — committed once at 00:05 ET to the `udayx.com` repo's `public/trading/daily/` path.
+- **daily/{YYYY-MM-DD}.json** — committed once at 00:15 ET to the `udayx.com` repo's `public/trading/daily/` path.
 - **live.json** — overwritten every 30s during RTH and pushed to a Cloudflare R2 public bucket.
 
 ## Trading-system non-interference contract
 
 The cron is a **passive observer**. Read-only at three layers:
-1. SQLite URI flag `?mode=ro` (per all three sibling-project replies — required, not optional).
+1. SQLite URI flag `?mode=ro` (required by all three upstream projects, not optional).
 2. `PRAGMA query_only=1` after connect.
 3. Code review pattern — no `INSERT/UPDATE/DELETE` strings in source.
 
@@ -41,7 +41,7 @@ python3.12 -m venv .venv
 .venv/bin/pytest -v
 ```
 
-The test suite uses fixture data from paisa Claude (saved in `tests/fixtures/`).
+The test suite uses fixture data exported from paisamaker (saved in `tests/fixtures/`).
 Tests run against in-memory SQLite mocking the real schemas. **No tests touch
 the live VM DBs.**
 
@@ -62,19 +62,32 @@ Expected baseline diff after a dry-run (vs. before):
 - WAL file may have grown a few KB from paisa's own writes (not ours)
 - No new listening ports, no new processes
 
-## Phase 3 deployment (on the VM)
+## Deployment (on the VM)
 
-See `scripts/install.sh` (TBD) and the runbook in
-`/Users/ukumar/.claude/plans/precious-crunching-lampson.md` §20.
+Status: daily rollups ran in production through 2026-05-07. The timers are
+currently paused.
 
 Pre-flight:
-1. Cloudflare R2 bucket + token (write-scoped to `udayx-live`).
-2. GitHub fine-grained PAT scoped to `gman-ai/udayx.com`.
-3. Healthchecks.io free account + two checks (`gex-rollup-daily`, `gex-rollup-live`).
-4. systemd-journal group access for the `rollup` user (for `journalctl` log parsing).
+1. Repo checked out at `/opt/gex-cron-runner` with a venv at `.venv/`.
+2. Dedicated `rollup` user in the `systemd-journal` group (for `journalctl` log parsing).
+3. Env files in `/etc/rollup/`:
+   - `github.env`: `GITHUB_PAT`, a fine-grained PAT scoped to `gman-ai/udayx.com`.
+   - `r2.env`: rclone credentials for the Cloudflare R2 bucket (token write-scoped to `udayx-live`).
+   - `healthchecks.env`: `DAILY_HC_UUID` and `LIVE_HC_UUID` (Healthchecks.io checks `gex-rollup-daily`, `gex-rollup-live`).
 
-Stage 1 (week 1): daily cron only.
-Stage 2 (week 2+): add live cron after 7 days of clean daily runs.
+Install and start the daily cron:
+
+```bash
+sudo cp systemd/gex-rollup-* /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now gex-rollup-daily.timer
+```
+
+Add the live cron once the daily runs are clean:
+
+```bash
+sudo systemctl enable --now gex-rollup-live.timer gex-rollup-live-close.timer
+```
 
 ## Module layout
 
@@ -97,7 +110,7 @@ gex_cron_runner/
 
 ## Known follow-ups (post-v1)
 
-- **Half-day map** is empty in 2026-Q2; populate before next half-day session.
+- **Half-day map** (`HALF_DAY_CLOSE_ET` in `config.py`): populate each year before the first half-day session.
 - **`current_px`** for unrealized P&L on open positions: omitted from live.json v1 (not persisted; chain-snapshot lookup is v2 work).
 - **2027 holiday reseed** in market_data.db: warn at startup if MAX(date) < today + 60d.
 - **`gex_watch.log` rotation**: not currently rotated (single 16 MB file at 5 weeks); add logrotate when file >150 MB/yr becomes uncomfortable.
@@ -105,6 +118,5 @@ gex_cron_runner/
 
 ## Source-of-truth references
 
-- Plan: `/Users/ukumar/.claude/plans/precious-crunching-lampson.md` §15–25 (detailed Phase 2)
-- Cross-project handoff: `/Users/ukumar/Projects/career/market/cron-runner-handoff/`
-- This repo's tests: `tests/test_*.py` against `tests/fixtures/cron_sample_*.json` from paisa
+- Upstream contracts: see [Cross-project source-of-truth pins](#cross-project-source-of-truth-pins) above.
+- This repo's tests: `tests/test_*.py` against `tests/fixtures/cron_sample_*.json` from paisamaker.
