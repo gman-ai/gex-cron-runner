@@ -235,7 +235,7 @@ def validate_live(payload: dict[str, Any]) -> None:
 def trigger_features_for_alert(alert_row: dict[str, Any]) -> dict[str, Any]:
     """Extract the 3 trigger features for an alert based on alert_type + ticker.
 
-    Per gex-advisor reply (handoff/03 §5):
+    Per gex-advisor INTEGRATION.md:
     - SPX uses 3-force (force_align column).
     - Non-SPX uses 5-force (features_json.$.force_align_5).
     - Some features live in features_json (vanna_accel, gamma_reclaim_confirmed,

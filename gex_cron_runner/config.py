@@ -3,10 +3,10 @@
 No side effects on import. Anything that requires env vars (PATs, UUIDs) is
 loaded lazily so unit tests can import the module without secrets present.
 
-Source-of-truth references (per cross-project handoff):
+Source-of-truth references:
 - gex-advisor/INTEGRATION.md@eec441f
 - market-data-fetcher/docs/cross-project/{DATA_CONTRACTS,LATENCY_BUDGET}.md
-- /Users/ukumar/Projects/career/market/cron-runner-handoff/99-synthesis.md
+- paisamaker/paisamaker/gex/db.py (schema in code)
 """
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from pathlib import Path
 
 # ---------------------------------------------------------------------------
 # Database paths on the Hetzner VM. Use these with `?mode=ro` URI flag.
-# Verified by all three sibling-project replies (handoff/01,02,03).
+# Verified against each upstream project (market-data-fetcher, paisamaker, gex-advisor).
 # ---------------------------------------------------------------------------
 DB_PATHS: dict[str, str] = {
     "market_data": "/opt/market-data/data/market_data.db",
@@ -47,7 +47,7 @@ SCHEMA_PINS = {
 }
 
 # ---------------------------------------------------------------------------
-# Output destinations on the VM (Phase 3 install paths).
+# Output destinations on the VM (install paths).
 # ---------------------------------------------------------------------------
 STATE_DIR = Path(os.environ.get("GEX_CRON_STATE_DIR", "/var/lib/gex-cron"))
 OUTPUT_DIRS: dict[str, Path] = {
@@ -205,7 +205,7 @@ BUNDLE_1_CUTOFF_UTC = "2026-05-05T18:00:00Z"
 
 # ---------------------------------------------------------------------------
 # Half-day close map. NOT in market_holidays schema (per fetcher reply);
-# gex-cron-runner owns this. Empty in 2026-Q2; populate before next half-day.
+# gex-cron-runner owns this. Populate each year before the first half-day.
 # Format: ISO date string → close time HH:MM ET.
 # ---------------------------------------------------------------------------
 HALF_DAY_CLOSE_ET: dict[str, str] = {

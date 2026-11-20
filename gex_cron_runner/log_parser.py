@@ -136,8 +136,8 @@ def count_ibkr_disconnects_today(
     Primary: try journalctl (proper timestamps, no day-boundary heuristics).
     Fallback: parse the tee'd file with HH:MM:SS bucketing.
 
-    The journal unit name is unknown until Phase 3 deploy verifies it on the
-    VM. Pass `journal_unit` explicitly if known; otherwise fallback to file.
+    The live service passes `--journal-unit=paisamaker-gexwatch.service`.
+    Without `journal_unit`, falls back to the file.
     """
     if journal_unit:
         try:
